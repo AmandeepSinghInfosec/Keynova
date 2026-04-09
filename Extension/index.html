@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/src/popup.css" />
+    <title>keynova</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="toast" class="toast"></div>
+
+    <!-- ══════════════════════════════════════════════════
+     SCREEN: LOCK
+═══════════════════════════════════════════════════ -->
+    <div id="screen-lock" class="screen">
+      <div class="screen-body" style="justify-content: center">
+        <div class="logo-wrap">
+          <div class="logo-icon">
+            <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+              <path
+                d="M16 4a7 7 0 0 1 7 7v3H9v-3a7 7 0 0 1 7-7z"
+                fill="white"
+                opacity=".95"
+              />
+              <rect
+                x="7"
+                y="14"
+                width="18"
+                height="13"
+                rx="3"
+                fill="white"
+                opacity=".95"
+              />
+              <circle cx="16" cy="21" r="2.5" fill="#0369a1" />
+            </svg>
+          </div>
+          <span class="logo-name">KeyNova</span>
+        </div>
+        <p class="logo-sub">Professional Password Vault</p>
+
+        <div class="field">
+          <label class="field-label">Master Password</label>
+          <div style="position: relative">
+            <input
+              id="master-pw"
+              type="password"
+              class="input input-with-icon"
+              placeholder="Enter your master password"
+              autocomplete="off"
+            />
+            <button class="field-icon" id="toggle-lock-pw" tabindex="-1">
+              👁
+            </button>
+          </div>
+        </div>
+
+        <p id="lock-error" class="error-msg" style="display: none"></p>
+        <button id="unlock-btn" class="btn btn-primary">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          Unlock Vault
+        </button>
+
+        <div class="divider"><span>Cloud sync</span></div>
+        <button id="fb-login-btn" class="btn btn-outline">
+          <svg width="16" height="16" viewBox="0 0 48 48">
+            <path fill="#FFA000" d="M8 37L17.7 9l9.6 18.3z" />
+            <path fill="#F57F17" d="M31 35.5L17.7 9 8 37z" />
+            <path fill="#FFCA28" d="M31 35.5l5-25.5L8 37z" />
+            <path fill="#FFA000" d="M36 10l-5 25.5L8 37z" />
+          </svg>
+          Sign in with Firebase
+        </button>
+
+        <p class="hint-text">
+          New here? Enter any password to create your local vault.<br />
+          <a class="link" id="forgot-link">Forgot master password?</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+     SCREEN: VAULT
+═══════════════════════════════════════════════════ -->
+    <div id="screen-vault" class="screen hidden">
+      <!-- Top status bar -->
+      <div class="status-bar">
+        <div class="status-brand">
+          <div
+            class="logo-icon"
+            style="
+              width: 22px;
+              height: 22px;
+              border-radius: 6px;
+              box-shadow: none;
+            "
+          >
+            <svg width="13" height="13" viewBox="0 0 32 32" fill="none">
+              <path
+                d="M16 4a7 7 0 0 1 7 7v3H9v-3a7 7 0 0 1 7-7z"
+                fill="white"
+              />
+              <rect x="7" y="14" width="18" height="13" rx="3" fill="white" />
+              <circle cx="16" cy="21" r="2.5" fill="#0369a1" />
+            </svg>
+          </div>
+          <span class="status-brand-name">KeyNova</span>
+        </div>
+        <div class="status-right">
+          <!-- Online/Offline pill -->
+          <div id="online-pill" class="status-pill offline">
+            <div class="status-pill-dot"></div>
+            <span id="online-label">Offline</span>
+          </div>
+          <!-- Autofill icon (shown when login form detected) -->
+          <button
+            id="autofill-quick-btn"
+            class="status-icon-btn"
+            title="Autofill this page"
+            style="display: none"
+          >
+            ⚡
+          </button>
+          <!-- Generator shortcut -->
+          <button
+            id="gen-shortcut-btn"
+            class="status-icon-btn"
+            title="Password Generator"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+          </button>
+          <!-- Sync -->
+          <button id="sync-btn" class="status-icon-btn" title="Sync vault">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path
+                d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+              />
+            </svg>
+          </button>
+          <!-- Lock -->
+          <button id="lock-btn" class="status-icon-btn" title="Lock vault">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search + filter -->
+      <div
+        style="
+          padding: 10px 16px 8px;
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        "
+      >
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input
+            id="search"
+            type="search"
+            class="input"
+            placeholder="Search vault…"
+          />
+        </div>
+        <select
+          id="cat-filter"
+          class="select"
+          style="width: 100px; margin: 0; font-size: 11px"
+        >
+          <option value="">All</option>
+        </select>
+      </div>
+
+      <!-- Nav tabs -->
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-tab="all">
+          <span>🏠</span> All
+        </button>
+        <button class="nav-tab" data-tab="favorites">
+          <span>★</span> Favs
+        </button>
+        <button class="nav-tab" data-tab="passwords">
+          <span>🔑</span> Passwords
+        </button>
+        <button class="nav-tab" data-tab="notes"><span>📝</span> Notes</button>
+      </div>
+
+      <!-- Entry list -->
+      <div
+        id="entry-list"
+        class="entry-list"
+        style="padding-bottom: 70px"
+      ></div>
+
+      <!-- FAB -->
+      <button class="fab" id="add-btn" title="Add new entry">+</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+     SCREEN: ADD / EDIT ENTRY
+═══════════════════════════════════════════════════ -->
+    <div id="screen-entry" class="screen hidden">
+      <div class="screen-header">
+        <button class="back-btn" id="entry-back-btn">←</button>
+        <span class="screen-header-title" id="entry-title-label"
+          >New Entry</span
+        >
+        <button class="btn btn-primary fb-pwm" id="save-btn">Save</button>
+      </div>
+
+      <div class="screen-body">
+        <!-- Type selector -->
+        <div class="field">
+          <label class="field-label">Entry Type</label>
+          <select id="entry-type" class="select">
+            <option value="password">🔑 Password</option>
+            <option value="note">📝 Secure Note</option>
+            <option value="wifi">📶 Wi-Fi Credentials</option>
+            <option value="api_key">🔐 API Key / Token</option>
+            <option value="pin">🔢 PIN / Code</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Title *</label>
+          <input
+            id="entry-name"
+            class="input"
+            placeholder="e.g. GitHub, Netflix, Home Wi-Fi"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field-label">Username / Email</label>
+          <input
+            id="entry-username"
+            class="input"
+            placeholder="username or email"
+          />
+        </div>
+
+        <!-- Password row -->
+        <div class="field">
+          <label class="field-label">Password / Secret</label>
+          <div class="pw-row">
+            <input
+              id="entry-password"
+              class="input"
+              type="password"
+              placeholder="password or secret value"
+            />
+            <button class="pw-action" id="toggle-entry-pw" title="Show/hide">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+            <button
+              class="pw-action"
+              id="gen-from-entry-btn"
+              title="Generate password"
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+            </button>
+            <button class="pw-action" id="copy-pw-btn" title="Copy password">
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Strength meter -->
+        <div id="strength-section">
+          <div class="strength-track">
+            <div
+              id="strength-fill"
+              class="strength-fill"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="strength-row">
+            <span
+              id="strength-label"
+              class="strength-label"
+              style="color: var(--muted)"
+              >—</span
+            >
+            <span id="strength-crack" class="strength-crack"></span>
+          </div>
+          <div class="strength-dots" id="strength-dots">
+            <div class="strength-dot"></div>
+            <div class="strength-dot"></div>
+            <div class="strength-dot"></div>
+            <div class="strength-dot"></div>
+            <div class="strength-dot"></div>
+          </div>
+        </div>
+
+        <div class="field mt-10">
+          <label class="field-label">Website URL</label>
+          <input
+            id="entry-url"
+            class="input"
+            placeholder="github.com or https://github.com"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field-label">Category</label>
+          <input
+            id="entry-category"
+            class="input"
+            placeholder="Category"
+            list="cat-datalist"
+          />
+          <datalist id="cat-datalist"></datalist>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Tags</label>
+          <input
+            id="entry-tags"
+            class="input"
+            placeholder="work, personal, 2fa (comma separated)"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field-label">Notes</label>
+          <textarea
+            id="entry-note"
+            class="input textarea"
+            placeholder="Any additional notes…"
+           ></textarea>/>
+        </div>
+
+        <!-- Password history -->
+        <div id="history-section" class="history-section hidden">
+          <p class="section-heading">Password History (last 5)</p>
+          <div id="history-list"></div>
+        </div>
+
+        <!-- Delete button (edit mode only) -->
+      <button 
+       id="delete-entry-btn" 
+       class="btn btn-danger hidden" 
+       style="margin-top: 14px"
+       >
+       🗑️ Delete Entry
+      </button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+     SCREEN: PASSWORD GENERATOR
+═══════════════════════════════════════════════════ -->
+    <div id="screen-generator" class="screen hidden">
+      <div class="screen-header">
+        <button class="back-btn" id="gen-back-btn">←</button>
+        <span class="screen-header-title">Password Generator</span>
+        <div style="width: 30px"></div>
+      </div>
+
+      <div class="screen-body">
+        <!-- Type selector tabs -->
+        <div class="gen-type-tabs">
+          <button class="gen-type-tab active" data-gen="password">
+            <span>🔑</span> Password
+          </button>
+          <button class="gen-type-tab" data-gen="passphrase">
+            <span>💬</span> Passphrase
+          </button>
+          <button class="gen-type-tab" data-gen="username">
+            <span>👤</span> Username
+          </button>
+        </div>
+
+        <!-- Output -->
+        <div class="gen-output-wrap">
+          <div id="gen-output" class="gen-output">Click Generate</div>
+        </div>
+
+        <!-- Actions -->
+        <div class="gen-actions">
+          <button id="gen-copy-btn" class="btn btn-outline btn-sm">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" />
+              <path
+                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+              />
+            </svg>
+            Copy
+          </button>
+          <button id="gen-use-btn" class="btn btn-outline btn-sm">
+            ↩ Use It
+          </button>
+          <button id="gen-new-btn" class="btn btn-primary btn-sm">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 1 1-.49-6.49" />
+            </svg>
+            Generate
+          </button>
+        </div>
+
+        <!-- Password options -->
+        <div id="opts-password" class="gen-opts">
+          <div class="gen-opt-row">
+            <span class="gen-opt-label">Length</span>
+            <input type="range" id="pw-len" min="8" max="64" value="16" />
+            <span class="gen-opt-value" id="pw-len-val">16</span>
+          </div>
+          <div class="gen-opt-row">
+            <input type="checkbox" id="use-upper" checked />
+            <span class="gen-opt-label">Uppercase A – Z</span>
+          </div>
+          <div class="gen-opt-row">
+            <input type="checkbox" id="use-lower" checked />
+            <span class="gen-opt-label">Lowercase a – z</span>
+          </div>
+          <div class="gen-opt-row">
+            <input type="checkbox" id="use-digits" checked />
+            <span class="gen-opt-label">Numbers 0 – 9</span>
+          </div>
+          <div class="gen-opt-row">
+            <input type="checkbox" id="use-symbols" checked />
+            <span class="gen-opt-label">Symbols ! @ # $ …</span>
+          </div>
+          <div class="gen-opt-row">
+            <input type="checkbox" id="excl-ambig" />
+            <span class="gen-opt-label">Exclude ambiguous 0 O 1 l I</span>
+          </div>
+        </div>
+
+        <!-- Passphrase options -->
+        <div id="opts-passphrase" class="gen-opts hidden">
+          <div class="gen-opt-row">
+            <span class="gen-opt-label">Word count</span>
+            <input type="range" id="word-count" min="3" max="8" value="4" />
+            <span class="gen-opt-value" id="word-count-val">4</span>
+          </div>
+          <div class="gen-opt-row">
+            <span class="gen-opt-label">Separator</span>
+            <input
+              type="text"
+              id="separator"
+              value="-"
+              maxlength="3"
+              class="input input-sm"
+            />
+          </div>
+          <div class="gen-opt-row">
+            <input type="checkbox" id="capitalize" checked />
+            <span class="gen-opt-label">Capitalize words</span>
+          </div>
+          <div class="gen-opt-row">
+            <input type="checkbox" id="append-num" checked />
+            <span class="gen-opt-label">Append number</span>
+          </div>
+        </div>
+
+        <!-- Username options -->
+        <div id="opts-username" class="gen-opts hidden">
+          <div
+            class="gen-opt-row"
+            style="flex-direction: column; align-items: flex-start; gap: 8px"
+          >
+            <span class="gen-opt-label">Style</span>
+            <select id="username-style" class="select" style="margin: 0">
+              <option value="adj-noun">Adjective + Noun (swift_fox42)</option>
+              <option value="word-number">Word + Number (maple4821)</option>
+              <option value="random">Random alphanumeric</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+     SCREEN: AUTOFILL PICKER
+═══════════════════════════════════════════════════ -->
+    <div id="screen-autofill" class="screen hidden">
+      <div class="screen-header">
+        <button class="back-btn" id="autofill-back-btn">←</button>
+        <span class="screen-header-title">Autofill</span>
+        <div style="width: 30px"></div>
+      </div>
+      <div class="screen-body">
+        <div class="autofill-site-badge">
+          <div class="autofill-site-icon">🌐</div>
+          <div>
+            <div class="autofill-site-name" id="autofill-domain">this page</div>
+            <div class="autofill-site-sub">Select credential to autofill</div>
+          </div>
+        </div>
+        <div
+          id="autofill-list"
+          class="entry-list"
+          style="padding: 0; flex: 1"
+        ></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+     SCREEN: FIREBASE SIGN IN
+═══════════════════════════════════════════════════ -->
+    <div id="screen-signin" class="screen hidden">
+      <div class="screen-header">
+        <button class="back-btn" id="signin-back-btn">←</button>
+        <span class="screen-header-title">Firebase Account</span>
+        <div style="width: 30px"></div>
+      </div>
+      <div class="screen-body">
+        <div class="fb-badge">
+          <svg width="22" height="22" viewBox="0 0 48 48">
+            <path fill="#FFA000" d="M8 37L17.7 9l9.6 18.3z" />
+            <path fill="#F57F17" d="M31 35.5L17.7 9 8 37z" />
+            <path fill="#FFCA28" d="M31 35.5l5-25.5L8 37z" />
+            <path fill="#FFA000" d="M36 10l-5 25.5L8 37z" />
+          </svg>
+          <div>
+            <div>Firebase Authentication</div>
+            <div class="fb-badge-sub">Encrypted cloud sync across devices</div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Email Address</label>
+          <input
+            id="fb-email"
+            class="input"
+            type="email"
+            placeholder="you@example.com"
+          />
+        </div>
+        <div class="field">
+          <label class="field-label">Password</label>
+          <div style="position: relative">
+            <input
+              id="fb-pw"
+              class="input input-with-icon"
+              type="password"
+              placeholder="min 6 characters"
+            />
+            <button class="field-icon" id="toggle-fb-pw" tabindex="-1">
+              👁
+            </button>
+          </div>
+        </div>
+        <p class="error-msg" id="signin-error"></p>
+        <button id="signin-btn" class="btn btn-primary">Sign In</button>
+        <div class="divider"><span>new user?</span></div>
+        <button id="signup-btn" class="btn btn-outline">Create Account</button>
+        <p class="hint-text">
+          Your vault is always encrypted before syncing. Firebase never sees
+          plaintext data.
+        </p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+     SCREEN: FORGOT PASSWORD
+═══════════════════════════════════════════════════ -->
+    <div id="screen-forgot" class="screen hidden">
+      <div class="screen-header">
+        <button class="back-btn" id="forgot-back-btn">←</button>
+        <span class="screen-header-title">Forgot Master Password</span>
+        <div style="width: 30px"></div>
+      </div>
+      <div class="screen-body">
+        <div class="warning-box">
+          ⚠️ Your master password is <strong>never stored anywhere</strong> —
+          not on device, not on Firebase. This is what makes KeyNova
+          zero-knowledge and unbreakable. It cannot be "recovered".
+        </div>
+        <p class="section-heading" style="margin-bottom: 10px">
+          What you can do
+        </p>
+        <div class="reset-step-card">
+          <div class="step-badge">1</div>
+          <div class="step-body">
+            <h4>Try password variations</h4>
+            <p>
+              Capitalization, numbers, symbols you may have added, or similar
+              passwords you use.
+            </p>
+          </div>
+        </div>
+        <div class="reset-step-card">
+          <div class="step-badge">2</div>
+          <div class="step-body">
+            <h4>Wipe local vault &amp; reset</h4>
+            <p>
+              Deletes local data only. Your Firebase cloud vault stays intact if
+              you were signed in.
+            </p>
+          </div>
+        </div>
+        <div class="reset-step-card">
+          <div class="step-badge">3</div>
+          <div class="step-body">
+            <h4>Set a new master password</h4>
+            <p>
+              After reset, unlock with any new password. Then sign in to
+              Firebase to re-sync your cloud vault.
+            </p>
+          </div>
+        </div>
+        <button id="wipe-btn" class="btn btn-danger">
+          🗑️ Wipe Local Vault &amp; Reset
+        </button>
+        <button id="forgot-cancel-btn" class="btn btn-outline">
+          ← Go Back &amp; Try Again
+        </button>
+      </div>
+    </div>
+    <!-- <script type="module" src="/src/main.js"></script> -->
+    <script type="module" src="/src/popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>KeyNova — Professional Password Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#020c18;--bg2:#04111f;--bg3:#081a2e;
+  --blue:#0ea5e9;--blue2:#38bdf8;--blue3:#7dd3fc;
+  --glow:rgba(14,165,233,.4);--glow2:rgba(14,165,233,.15);--glow3:rgba(14,165,233,.07);
+  --text:#ddeeff;--muted:#3d6882;--border:rgba(14,165,233,.15);--border2:rgba(14,165,233,.3);
+  --success:#10b981;--warn:#f59e0b;--danger:#f43f5e;
+  --d:'Orbitron',sans-serif;--b:'DM Sans',sans-serif;--m:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--b);overflow-x:hidden;cursor:none}
+
+/* Custom cursor */
+#cur{position:fixed;width:10px;height:10px;background:var(--blue2);border-radius:50%;
+  pointer-events:none;z-index:9999;transform:translate(-50%,-50%);
+  transition:transform .08s;mix-blend-mode:screen}
+#cur-ring{position:fixed;width:32px;height:32px;border:1.5px solid var(--blue);border-radius:50%;
+  pointer-events:none;z-index:9998;transform:translate(-50%,-50%);
+  transition:transform .2s ease}
+body:has(a:hover) #cur{transform:translate(-50%,-50%) scale(2)}
+body:has(.btn:hover) #cur{transform:translate(-50%,-50%) scale(3)}
+
+/* Canvas */
+#canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.7}
+.z1{position:relative;z-index:1}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:16px 48px;display:flex;align-items:center;justify-content:space-between;
+  transition:background .4s,backdrop-filter .4s}
+nav.solid{background:rgba(2,8,24,.88);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border)}
+.nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text)}
+.nav-brand-icon{width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,#0369a1,#0ea5e9);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 16px var(--glow2)}
+.nav-brand-name{font-family:var(--d);font-size:16px;font-weight:700;letter-spacing:1px;
+  background:linear-gradient(90deg,#ddeeff,#38bdf8);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:32px}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:14px;
+  transition:color .2s;font-weight:500}
+.nav-links a:hover{color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;
+  font-family:var(--b);font-weight:600;font-size:14px;text-decoration:none;
+  cursor:pointer;border:none;transition:all .2s;letter-spacing:.2px}
+.btn-primary{background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;
+  box-shadow:0 0 20px var(--glow2)}
+.btn-primary:hover{box-shadow:0 0 40px var(--glow);transform:translateY(-2px)}
+.btn-outline{background:transparent;color:var(--blue2);border:1px solid var(--border2)}
+.btn-outline:hover{background:var(--glow3);border-color:var(--blue);box-shadow:0 0 16px var(--glow2)}
+
+/* ── SECTIONS ── */
+section{padding:120px 0;position:relative}
+.container{max-width:1160px;margin:0 auto;padding:0 40px}
+
+/* ── HERO ── */
+#hero{min-height:100vh;display:flex;align-items:center;padding-top:80px}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;
+  background:rgba(14,165,233,.08);border:1px solid var(--border2);
+  border-radius:100px;padding:6px 16px;font-size:12px;color:var(--blue2);
+  margin-bottom:28px;font-weight:600;letter-spacing:.5px;
+  animation:fadeUp .6s both}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--blue2);
+  animation:dotPulse 2s infinite}
+@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.6)}}
+.hero-title{font-family:var(--d);font-size:clamp(44px,6vw,76px);line-height:1.05;
+  font-weight:900;letter-spacing:-1px;animation:fadeUp .7s .1s both}
+.hero-title .accent{
+  background:linear-gradient(135deg,#38bdf8,#0ea5e9,#7dd3fc);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  display:block}
+.hero-sub{font-size:17px;color:var(--muted);line-height:1.7;
+  margin:24px 0 36px;max-width:500px;animation:fadeUp .7s .2s both}
+.hero-cta{display:flex;gap:14px;animation:fadeUp .7s .3s both}
+.hero-stats{display:flex;gap:40px;margin-top:56px;animation:fadeUp .7s .4s both}
+.stat strong{font-family:var(--d);font-size:28px;font-weight:700;display:block;
+  background:linear-gradient(135deg,#ddeeff,#38bdf8);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+
+/* Hero visual */
+.hero-visual{animation:fadeUp .8s .2s both}
+.ext-mockup{
+  background:linear-gradient(135deg,rgba(4,17,31,.95),rgba(7,26,46,.95));
+  border:1px solid var(--border2);border-radius:20px;padding:0;
+  box-shadow:0 0 60px rgba(14,165,233,.12),0 40px 80px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(255,255,255,.05);
+  overflow:hidden;transform-style:preserve-3d;
+  animation:mockupFloat 6s ease-in-out infinite;
+}
+@keyframes mockupFloat{0%,100%{transform:perspective(1000px) rotateY(-5deg) rotateX(3deg)}
+  50%{transform:perspective(1000px) rotateY(-3deg) rotateX(1deg)}}
+
+/* Mockup status bar */
+.m-bar{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  background:rgba(2,8,24,.6);backdrop-filter:blur(10px)}
+.m-brand{display:flex;align-items:center;gap:8px;font-family:var(--d);font-size:12px;font-weight:700;
+  background:linear-gradient(90deg,#ddeeff,#38bdf8);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.m-pill{display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:100px;
+  font-size:10px;font-weight:700;background:rgba(16,185,129,.12);
+  border:1px solid rgba(16,185,129,.3);color:#10b981}
+.m-pill-dot{width:5px;height:5px;border-radius:50%;background:#10b981;
+  animation:dotPulse 1.8s infinite}
+.m-icons{display:flex;gap:6px}
+.m-icon{width:24px;height:24px;border-radius:6px;background:rgba(14,165,233,.08);
+  display:flex;align-items:center;justify-content:center;font-size:11px}
+
+/* Mockup search */
+.m-search{padding:10px 16px 8px;display:flex;gap:8px}
+.m-input{flex:1;background:rgba(4,17,31,.8);border:1px solid var(--border);
+  border-radius:8px;padding:8px 12px;font-size:11px;color:var(--text);
+  font-family:var(--b)}
+.m-sel{width:80px;background:rgba(4,17,31,.8);border:1px solid var(--border);
+  border-radius:8px;padding:8px;font-size:10px;color:var(--muted)}
+
+/* Mockup tabs */
+.m-tabs{display:flex;padding:0 16px;border-bottom:1px solid var(--border);gap:0}
+.m-tab{flex:1;padding:8px 4px;font-size:10px;font-weight:600;color:var(--muted);
+  border-bottom:2px solid transparent;text-align:center;display:flex;
+  flex-direction:column;align-items:center;gap:2px}
+.m-tab.a{color:var(--blue2);border-bottom-color:var(--blue)}
+.m-tab-icon{font-size:14px}
+
+/* Mockup entries */
+.m-entries{padding:10px 16px;display:flex;flex-direction:column;gap:7px}
+.m-entry{display:flex;align-items:center;gap:10px;padding:10px 11px;
+  background:rgba(4,17,31,.6);border:1px solid var(--border);border-radius:9px;
+  position:relative;overflow:hidden;
+  animation:entrySlide .4s cubic-bezier(.2,.8,.4,1) both}
+.m-entry:nth-child(1){animation-delay:1s}
+.m-entry:nth-child(2){animation-delay:1.15s}
+.m-entry:nth-child(3){animation-delay:1.3s}
+@keyframes entrySlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.m-entry::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:linear-gradient(180deg,var(--blue),var(--blue2))}
+.m-eicon{width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,rgba(8,22,40,.8),rgba(12,32,56,.8));
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px}
+.m-einfo{flex:1}
+.m-ename{font-size:12px;font-weight:600;margin-bottom:2px}
+.m-esub{font-size:10px;color:var(--muted)}
+.m-etag{font-size:9px;padding:2px 7px;border-radius:100px;
+  background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:var(--success);font-weight:700}
+.m-ebadge{font-size:9px;padding:2px 7px;border-radius:100px;
+  background:rgba(14,165,233,.1);border:1px solid var(--border2);color:var(--blue2);font-weight:700}
+.m-eactions{display:flex;gap:3px}
+.m-eact{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);
+  background:none;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer}
+
+/* FAB mockup */
+.m-fab{width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,#0369a1,#0ea5e9);
+  display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;
+  margin:8px 16px 14px auto;box-shadow:0 4px 16px var(--glow2);cursor:pointer}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+
+/* ── FEATURES ── */
+#features{background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 50%,var(--bg) 100%)}
+.section-eyebrow{font-family:var(--m);font-size:11px;color:var(--blue2);
+  letter-spacing:3px;text-transform:uppercase;margin-bottom:12px}
+.section-title{font-family:var(--d);font-size:clamp(30px,4vw,50px);
+  font-weight:800;letter-spacing:-1px;margin-bottom:60px;line-height:1.1}
+.section-title span{background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feat{background:rgba(4,17,31,.7);border:1px solid var(--border);border-radius:16px;
+  padding:28px;transition:all .3s;position:relative;overflow:hidden;cursor:pointer}
+.feat::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s;
+  background:radial-gradient(ellipse at 50% 0%,rgba(14,165,233,.1),transparent 70%)}
+.feat:hover{border-color:var(--border2);transform:translateY(-6px);
+  box-shadow:0 20px 60px rgba(14,165,233,.12)}
+.feat:hover::before{opacity:1}
+.feat-icon{font-size:30px;margin-bottom:16px;display:block}
+.feat-name{font-size:16px;font-weight:700;margin-bottom:8px;letter-spacing:-.2px}
+.feat-desc{font-size:13px;color:var(--muted);line-height:1.7}
+.feat.reveal{opacity:0;transform:translateY(30px);transition:opacity .6s,transform .6s}
+.feat.reveal.show{opacity:1;transform:none}
+
+/* ── GENERATOR DEMO ── */
+#generator-section{background:var(--bg2)}
+.gen-demo{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.gen-panel{background:rgba(2,8,24,.8);border:1px solid var(--border2);
+  border-radius:20px;padding:30px;
+  box-shadow:0 0 40px rgba(14,165,233,.08)}
+.gen-tabs{display:flex;gap:0;background:rgba(4,17,31,.8);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;margin-bottom:20px}
+.gen-tab{flex:1;padding:10px 8px;font-size:12px;font-weight:600;border:none;
+  background:none;color:var(--muted);cursor:pointer;font-family:var(--b);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:all .2s;border-right:1px solid var(--border)}
+.gen-tab:last-child{border-right:none}
+.gen-tab.a{background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff}
+.gen-output-box{background:rgba(4,17,31,.9);border:1px solid var(--border2);
+  border-radius:12px;padding:18px;margin-bottom:16px;
+  font-family:var(--m);font-size:15px;color:var(--blue2);
+  word-break:break-all;letter-spacing:1px;line-height:1.7;min-height:60px;
+  position:relative;overflow:hidden}
+.gen-output-box::before{content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(14,165,233,.06),transparent);
+  animation:sweep 2.5s ease-in-out infinite}
+@keyframes sweep{0%{left:-60%}100%{left:160%}}
+.gen-btns{display:flex;gap:8px;margin-bottom:20px}
+.gen-btns .btn{flex:1;font-size:12px;padding:9px 8px}
+.gen-opt{display:flex;align-items:center;gap:10px;padding:8px 12px;
+  background:rgba(4,17,31,.6);border:1px solid var(--border);border-radius:8px;
+  margin-bottom:8px;font-size:12px;color:var(--text)}
+.gen-opt input[type=range]{flex:1;accent-color:var(--blue);height:3px}
+.gen-opt input[type=checkbox]{accent-color:var(--blue);width:15px;height:15px;cursor:pointer}
+.gen-opt-val{font-weight:700;color:var(--blue2);min-width:24px;text-align:right}
+
+/* ── SECURITY ── */
+#security{background:var(--bg)}
+.sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start}
+.code-block{background:rgba(2,8,24,.9);border:1px solid var(--border2);
+  border-radius:16px;padding:28px;font-family:var(--m);font-size:12px;
+  line-height:2.2;box-shadow:0 0 40px rgba(14,165,233,.08)}
+.c-comment{color:var(--muted)}.c-key{color:var(--blue2)}.c-val{color:#f59e0b}
+.c-str{color:#86efac}.c-fn{color:#c084fc}
+.code-line{opacity:0;animation:lineIn .3s both}
+.code-line:nth-child(1){animation-delay:.5s}.code-line:nth-child(2){animation-delay:.65s}
+.code-line:nth-child(3){animation-delay:.8s}.code-line:nth-child(4){animation-delay:.95s}
+.code-line:nth-child(5){animation-delay:1.1s}.code-line:nth-child(6){animation-delay:1.25s}
+.code-line:nth-child(7){animation-delay:1.4s}.code-line:nth-child(8){animation-delay:1.55s}
+.code-line:nth-child(9){animation-delay:1.7s}.code-line:nth-child(10){animation-delay:1.85s}
+.code-line:nth-child(11){animation-delay:2s}
+@keyframes lineIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.sec-items{display:flex;flex-direction:column;gap:18px}
+.sec-item{display:flex;gap:16px;align-items:flex-start;padding:18px;
+  background:rgba(4,17,31,.5);border:1px solid var(--border);border-radius:14px;
+  transition:border-color .2s;cursor:default}
+.sec-item:hover{border-color:var(--border2)}
+.sec-icon{width:40px;height:40px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(3,105,161,.3),rgba(14,165,233,.2));
+  border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:18px}
+.sec-item h4{font-size:14px;font-weight:700;margin-bottom:5px}
+.sec-item p{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* ── CTA ── */
+#cta{text-align:center;position:relative;overflow:hidden}
+#cta::before{content:'';position:absolute;left:50%;top:50%;width:700px;height:700px;
+  border-radius:50%;background:radial-gradient(ellipse,rgba(14,165,233,.12),transparent 70%);
+  transform:translate(-50%,-50%);pointer-events:none}
+.cta-title{font-family:var(--d);font-size:clamp(36px,6vw,68px);
+  font-weight:900;letter-spacing:-2px;margin-bottom:20px}
+.cta-sub{font-size:16px;color:var(--muted);margin-bottom:40px}
+.cta-btns{display:flex;gap:16px;justify-content:center}
+
+/* ── FOOTER ── */
+footer{padding:40px 0;border-top:1px solid var(--border);
+  text-align:center;color:var(--muted);font-size:13px}
+footer strong{color:var(--text)}
+
+/* ── Reveal ── */
+.reveal{opacity:0;transform:translateY(36px);transition:opacity .7s,transform .7s}
+.reveal.show{opacity:1;transform:none}
+
+@media(max-width:900px){
+  .hero-grid,.gen-demo,.sec-grid{grid-template-columns:1fr}
+  .hero-visual{display:none}
+  .feat-grid{grid-template-columns:1fr 1fr}
+  nav{padding:14px 24px}
+  .nav-links{display:none}
+}
+@media(max-width:600px){
+  .feat-grid{grid-template-columns:1fr}
+  .hero-stats{gap:24px}
+}
+</style>
+</head>
+<body>
+<div id="cur"></div>
+<div id="cur-ring"></div>
+<canvas id="canvas"></canvas>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-brand">
+    <div class="nav-brand-icon">
+      <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+        <path d="M16 4a7 7 0 0 1 7 7v3H9v-3a7 7 0 0 1 7-7z" fill="white"/>
+        <rect x="7" y="14" width="18" height="13" rx="3" fill="white"/>
+        <circle cx="16" cy="21" r="2.5" fill="#0369a1"/>
+      </svg>
+    </div>
+    <span class="nav-brand-name">KEYNOVA</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#generator-section">Generator</a>
+    <a href="#security">Security</a>
+  </div>
+  <a href="#" class="btn btn-primary">Add to Chrome</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="container z1">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-badge"><span class="badge-dot"></span>AES-256 · Zero-Knowledge · Open Source</div>
+        <h1 class="hero-title">
+          Password Security<br/><span class="accent">Reimagined.</span>
+        </h1>
+        <p class="hero-sub">KeyNova is the professional password vault built by a cybersecurity student. Encrypted locally, synced globally — your master password never leaves your device.</p>
+        <div class="hero-cta">
+          <a href="#" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Add to Chrome — Free
+          </a>
+          <a href="#features" class="btn btn-outline">Explore Features</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><strong>AES‑256</strong><span>Encryption</span></div>
+          <div class="stat"><strong>600K</strong><span>PBKDF2 Rounds</span></div>
+          <div class="stat"><strong>0</strong><span>Plaintext Stored</span></div>
+        </div>
+      </div>
+
+      <!-- Extension mockup -->
+      <div class="hero-visual">
+        <div class="ext-mockup">
+          <div class="m-bar">
+            <div class="m-brand">
+              <svg width="16" height="16" viewBox="0 0 32 32" fill="none">
+                <path d="M16 4a7 7 0 0 1 7 7v3H9v-3a7 7 0 0 1 7-7z" fill="white"/>
+                <rect x="7" y="14" width="18" height="13" rx="3" fill="white"/>
+                <circle cx="16" cy="21" r="2.5" fill="#0369a1"/>
+              </svg>
+              KeyNova
+            </div>
+            <div class="m-pill"><div class="m-pill-dot"></div>Online</div>
+            <div class="m-icons">
+              <div class="m-icon">⚡</div>
+              <div class="m-icon">⟳</div>
+              <div class="m-icon">🔒</div>
+            </div>
+          </div>
+          <div class="m-search">
+            <input class="m-input" placeholder="🔍  Search vault…" readonly/>
+            <select class="m-sel"><option>All</option></select>
+          </div>
+          <div class="m-tabs">
+            <div class="m-tab a"><div class="m-tab-icon">🏠</div>All</div>
+            <div class="m-tab"><div class="m-tab-icon">★</div>Favs</div>
+            <div class="m-tab"><div class="m-tab-icon">🔑</div>Pass</div>
+            <div class="m-tab"><div class="m-tab-icon">📝</div>Notes</div>
+          </div>
+          <div class="m-entries">
+            <div class="m-entry">
+              <div class="m-eicon">🔑</div>
+              <div class="m-einfo">
+                <div class="m-ename">GitHub</div>
+                <div class="m-esub">dev@keynova.app</div>
+              </div>
+              <span class="m-etag">✓ Match</span>
+              <div class="m-eactions"><div class="m-eact">★</div><div class="m-eact">⚡</div></div>
+            </div>
+            <div class="m-entry">
+              <div class="m-eicon">🔐</div>
+              <div class="m-einfo">
+                <div class="m-ename">Anthropic API</div>
+                <div class="m-esub">sk-ant-••••••••••</div>
+              </div>
+              <span class="m-ebadge">API Key</span>
+              <div class="m-eactions"><div class="m-eact">★</div><div class="m-eact">⚡</div></div>
+            </div>
+            <div class="m-entry">
+              <div class="m-eicon">📶</div>
+              <div class="m-einfo">
+                <div class="m-ename">Home Wi-Fi</div>
+                <div class="m-esub">WPA3 Network</div>
+              </div>
+              <span class="m-ebadge">Wi-Fi</span>
+              <div class="m-eactions"><div class="m-eact">★</div><div class="m-eact">✏️</div></div>
+            </div>
+          </div>
+          <div class="m-fab">+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container z1">
+    <div class="reveal">
+      <div class="section-eyebrow">What's inside</div>
+      <div class="section-title">Everything you need to<br/>stay <span>protected</span>.</div>
+    </div>
+    <div class="feat-grid">
+      <div class="feat reveal"><span class="feat-icon">🔒</span><div class="feat-name">AES-256 Encryption</div><div class="feat-desc">Every credential encrypted with AES-256-GCM before leaving your device. Master password never transmitted.</div></div>
+      <div class="feat reveal"><span class="feat-icon">⚡</span><div class="feat-name">Smart Autofill</div><div class="feat-desc">Detects login forms on any page. Shows matching credentials with a ✓ badge. One click to fill and go.</div></div>
+      <div class="feat reveal"><span class="feat-icon">📊</span><div class="feat-name">Strength Analysis</div><div class="feat-desc">Real-time scoring with crack-time estimation, pattern detection, and 5-dot visual indicator.</div></div>
+      <div class="feat reveal"><span class="feat-icon">🎲</span><div class="feat-name">Password Generator</div><div class="feat-desc">Generate passwords, passphrases, and anonymous usernames with full customization controls.</div></div>
+      <div class="feat reveal"><span class="feat-icon">📝</span><div class="feat-name">All Entry Types</div><div class="feat-desc">Passwords, secure notes, Wi-Fi credentials, API keys, and PINs — all in one encrypted vault.</div></div>
+      <div class="feat reveal"><span class="feat-icon">☁️</span><div class="feat-name">Cloud Sync</div><div class="feat-desc">Encrypted vault syncs to Firebase Firestore. Works offline, syncs automatically on reconnect.</div></div>
+      <div class="feat reveal"><span class="feat-icon">🌐</span><div class="feat-name">Online / Offline Mode</div><div class="feat-desc">Live status pill shows if you're synced to Firebase. Works fully offline with local storage.</div></div>
+      <div class="feat reveal"><span class="feat-icon">🕐</span><div class="feat-name">Password History</div><div class="feat-desc">Last 5 versions of every password stored. Restore any previous version in one click.</div></div>
+      <div class="feat reveal"><span class="feat-icon">🔐</span><div class="feat-name">Auto-Lock</div><div class="feat-desc">Vault locks after 15 minutes of inactivity. Session key wiped from memory on lock.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- GENERATOR DEMO -->
+<section id="generator-section">
+  <div class="container z1">
+    <div class="gen-demo">
+      <div class="reveal">
+        <div class="section-eyebrow">Built-in</div>
+        <div class="section-title" style="margin-bottom:20px">Cryptographic<br/><span>Generator</span></div>
+        <p style="color:var(--muted);font-size:15px;line-height:1.7;margin-bottom:24px">Generate strong passwords, memorable passphrases, and anonymous usernames — all using the Web Crypto API for true randomness, never Math.random().</p>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(4,17,31,.5);border:1px solid var(--border);border-radius:12px">
+            <span style="font-size:20px">🔑</span>
+            <div><div style="font-size:13px;font-weight:600">Password</div><div style="font-size:12px;color:var(--muted)">Customizable charset, length, ambiguity</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(4,17,31,.5);border:1px solid var(--border);border-radius:12px">
+            <span style="font-size:20px">💬</span>
+            <div><div style="font-size:13px;font-weight:600">Passphrase</div><div style="font-size:12px;color:var(--muted)">Word list, separator, capitalize, append number</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(4,17,31,.5);border:1px solid var(--border);border-radius:12px">
+            <span style="font-size:20px">👤</span>
+            <div><div style="font-size:13px;font-weight:600">Username</div><div style="font-size:12px;color:var(--muted)">Adj+Noun, Word+Number, or random</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="gen-panel reveal">
+        <div class="gen-tabs">
+          <button class="gen-tab a" onclick="setGenTab('password',this)">🔑 Password</button>
+          <button class="gen-tab" onclick="setGenTab('passphrase',this)">💬 Passphrase</button>
+          <button class="gen-tab" onclick="setGenTab('username',this)">👤 Username</button>
+        </div>
+        <div class="gen-output-box" id="site-gen-out">Click Generate ↓</div>
+        <div class="gen-btns">
+          <button class="btn btn-outline" onclick="copyGen()" style="font-size:12px">📋 Copy</button>
+          <button class="btn btn-primary" onclick="siteGenerate()" style="font-size:12px">⟳ Generate</button>
+        </div>
+        <div id="site-opts-password">
+          <div class="gen-opt">
+            <span>Length</span>
+            <input type="range" id="s-len" min="8" max="64" value="20" oninput="document.getElementById('s-len-v').textContent=this.value;siteGenerate()"/>
+            <span class="gen-opt-val" id="s-len-v">20</span>
+          </div>
+          <div class="gen-opt"><input type="checkbox" id="s-up" checked onchange="siteGenerate()"/><span>Uppercase A–Z</span></div>
+          <div class="gen-opt"><input type="checkbox" id="s-lo" checked onchange="siteGenerate()"/><span>Lowercase a–z</span></div>
+          <div class="gen-opt"><input type="checkbox" id="s-dg" checked onchange="siteGenerate()"/><span>Numbers 0–9</span></div>
+          <div class="gen-opt"><input type="checkbox" id="s-sy" checked onchange="siteGenerate()"/><span>Symbols !@#$…</span></div>
+          <div class="gen-opt"><input type="checkbox" id="s-na" onchange="siteGenerate()"/><span>No ambiguous (0 O 1 l)</span></div>
+        </div>
+        <div id="site-opts-passphrase" style="display:none">
+          <div class="gen-opt">
+            <span>Words</span>
+            <input type="range" id="s-wc" min="3" max="8" value="4" oninput="document.getElementById('s-wc-v').textContent=this.value;siteGenerate()"/>
+            <span class="gen-opt-val" id="s-wc-v">4</span>
+          </div>
+          <div class="gen-opt"><input type="checkbox" id="s-cap" checked onchange="siteGenerate()"/><span>Capitalize words</span></div>
+          <div class="gen-opt"><input type="checkbox" id="s-num" checked onchange="siteGenerate()"/><span>Append number</span></div>
+        </div>
+        <div id="site-opts-username" style="display:none">
+          <div class="gen-opt" style="flex-direction:column;align-items:flex-start;gap:6px">
+            <span>Style</span>
+            <select id="s-us" onchange="siteGenerate()" style="width:100%;background:rgba(4,17,31,.8);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px;font-size:12px">
+              <option value="adj-noun">Adjective + Noun</option>
+              <option value="word-number">Word + Number</option>
+              <option value="random">Random</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section id="security">
+  <div class="container z1">
+    <div class="sec-grid">
+      <div>
+        <div class="section-eyebrow reveal">Zero-knowledge</div>
+        <div class="section-title reveal" style="margin-bottom:24px">Built for people<br/>who <span>understand</span><br/>security.</div>
+        <div class="sec-items">
+          <div class="sec-item reveal"><div class="sec-icon">🔑</div><div><h4>Client-side key derivation</h4><p>PBKDF2 with 100,000 iterations derives your AES key locally. Firebase receives only ciphertext.</p></div></div>
+          <div class="sec-item reveal"><div class="sec-icon">🛡️</div><div><h4>Memory-safe sessions</h4><p>The encryption key lives only in sessionStorage, auto-wiped on lock or 15-minute timeout.</p></div></div>
+          <div class="sec-item reveal"><div class="sec-icon">🌐</div><div><h4>Firestore security rules</h4><p>Every user can only access their own vault document. Not even admins can read your data.</p></div></div>
+          <div class="sec-item reveal"><div class="sec-icon">🎲</div><div><h4>True randomness</h4><p>All generation uses <code style="color:var(--blue2)">crypto.getRandomValues()</code> — never Math.random().</p></div></div>
+        </div>
+      </div>
+      <div class="code-block reveal">
+        <div class="code-line"><span class="c-comment">// KeyNova — zero-knowledge flow</span></div>
+        <div class="code-line"><span class="c-comment"></span></div>
+        <div class="code-line"><span class="c-key">const</span> <span class="c-val">pw</span> = getUserInput<span class="c-fn">()</span></div>
+        <div class="code-line"><span class="c-comment">// never stored or sent to server</span></div>
+        <div class="code-line"><span class="c-comment"></span></div>
+        <div class="code-line"><span class="c-key">const</span> <span class="c-val">salt</span> = crypto.<span class="c-fn">getRandomValues</span>(16)</div>
+        <div class="code-line"><span class="c-key">const</span> <span class="c-val">key</span>  = <span class="c-key">await</span> <span class="c-fn">PBKDF2</span>(pw, salt, 100000)</div>
+        <div class="code-line"><span class="c-comment">// 100,000 iterations, SHA-256</span></div>
+        <div class="code-line"><span class="c-comment"></span></div>
+        <div class="code-line"><span class="c-key">const</span> <span class="c-val">blob</span> = <span class="c-key">await</span> <span class="c-fn">AES_GCM.encrypt</span>(key, vault)</div>
+        <div class="code-line"><span class="c-key">await</span> <span class="c-fn">Firestore.set</span>(<span class="c-str">"vaults/uid"</span>, blob)</div>
+        <div class="code-line"><span class="c-comment">// Firebase only ever sees ↑ blob</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="container z1" style="text-align:center">
+    <h2 class="cta-title reveal">Ready to secure<br/>your credentials?</h2>
+    <p class="cta-sub reveal">Free. Open source. No subscription. No compromise.</p>
+    <div class="cta-btns reveal">
+      <a href="#" class="btn btn-primary">Add to Chrome — Free</a>
+      <a href="https://github.com" class="btn btn-outline">View on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container z1">
+    Built by a cybersecurity student · <strong>KeyNova v2.0</strong> · Zero-knowledge, always.
+  </div>
+</footer>
+
+<script>
+// ── Cursor ──
+const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function tick(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(tick)})();
+
+// ── Canvas particles ──
+const cv=document.getElementById('canvas'),ctx=cv.getContext('2d');
+let W,H,pts=[];
+function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight}
+resize();window.addEventListener('resize',resize);
+function pt(){return{x:Math.random()*W,y:H+10,vx:(Math.random()-.5)*.4,vy:-.4-Math.random()*.4,r:.8+Math.random()*1.8,a:Math.random()*.5+.1,h:200+Math.random()*40}}
+for(let i=0;i<100;i++){const p=pt();p.y=Math.random()*H;pts.push(p);}
+function drawCanvas(){
+  ctx.clearRect(0,0,W,H);
+  // grid
+  ctx.strokeStyle='rgba(14,165,233,0.035)';ctx.lineWidth=1;
+  const gs=48;
+  for(let x=0;x<W;x+=gs){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  for(let y=0;y<H;y+=gs){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  pts.forEach((p,i)=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.y<-10){pts[i]=pt();}
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`hsla(${p.h},80%,70%,${p.a})`;ctx.fill();
+  });
+  requestAnimationFrame(drawCanvas);
+}
+drawCanvas();
+
+// ── Nav scroll ──
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('solid',scrollY>40));
+
+// ── Scroll reveal ──
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')}),{threshold:.12});
+document.querySelectorAll('.reveal,.feat.reveal').forEach(el=>obs.observe(el));
+
+// ── Mockup parallax ──
+document.addEventListener('mousemove',e=>{
+  const m=document.querySelector('.ext-mockup');if(!m)return;
+  const rect=m.getBoundingClientRect();
+  const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const dx=(e.clientX-cx)/400,dy=(e.clientY-cy)/400;
+  m.style.transform=`perspective(1200px) rotateY(${-5+dx*4}deg) rotateX(${3-dy*3}deg)`;
+});
+
+// ── Generator (live on site) ──
+const WORDS=['apple','brave','crisp','delta','eagle','flame','grace','hazel','ivory','jewel','kite','lemon','maple','noble','ocean','pearl','quiet','river','storm','tiger','ultra','vivid','waltz','yield','zebra','amber','blaze','cedar','drift','ember','frost','glide','heron','lunar','nexus','orbit','prism','quest','raven','slate','torch','pixel','cyber','nova'];
+const ADJ=['swift','calm','bold','bright','dark','quiet','wild','iron','neon','sage','teal','echo','frost','cyber','pixel'];
+const NON=['fox','hawk','wolf','bear','crow','lynx','seal','mist','tide','peak','node','byte','core','flux','void'];
+function ri(n){const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n;}
+let sGenType='password';
+function setGenTab(t,btn){
+  sGenType=t;
+  document.querySelectorAll('.gen-tab').forEach(b=>b.classList.remove('a'));
+  btn.classList.add('a');
+  ['password','passphrase','username'].forEach(g=>{
+    const el=document.getElementById('site-opts-'+g);
+    if(el)el.style.display=g===t?'block':'none';
+  });
+  siteGenerate();
+}
+function siteGenerate(){
+  let out='';
+  if(sGenType==='password'){
+    const len=Number(document.getElementById('s-len').value);
+    const amb='0O1lI',na=document.getElementById('s-na').checked;
+    const f=s=>na?s.split('').filter(c=>!amb.includes(c)).join(''):s;
+    let pool='';
+    if(document.getElementById('s-lo').checked)pool+=f('abcdefghijklmnopqrstuvwxyz');
+    if(document.getElementById('s-up').checked)pool+=f('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+    if(document.getElementById('s-dg').checked)pool+=f('0123456789');
+    if(document.getElementById('s-sy').checked)pool+='!@#$%^&*()-_=+[]{}|;:,.<>?';
+    if(!pool)pool='abcdefghijklmnopqrstuvwxyz';
+    const arr=Array.from({length:len},()=>pool[ri(pool.length)]);
+    for(let i=arr.length-1;i>0;i--){const j=ri(i+1);[arr[i],arr[j]]=[arr[j],arr[i]];}
+    out=arr.join('');
+  }else if(sGenType==='passphrase'){
+    const count=Number(document.getElementById('s-wc').value);
+    const cap=document.getElementById('s-cap').checked;
+    const num=document.getElementById('s-num').checked;
+    const ws=Array.from({length:count},()=>{const w=WORDS[ri(WORDS.length)];return cap?w[0].toUpperCase()+w.slice(1):w;});
+    if(num)ws.push(String(ri(90)+10));
+    out=ws.join('-');
+  }else{
+    const style=document.getElementById('s-us').value;
+    if(style==='adj-noun')out=ADJ[ri(ADJ.length)]+'_'+NON[ri(NON.length)]+String(ri(90)+10);
+    else if(style==='word-number')out=WORDS[ri(WORDS.length)]+String(ri(9000)+1000);
+    else{const p='abcdefghijklmnopqrstuvwxyz0123456789';out=Array.from({length:11},()=>p[ri(p.length)]).join('');}
+  }
+  document.getElementById('site-gen-out').textContent=out;
+}
+function copyGen(){
+  const t=document.getElementById('site-gen-out').textContent;
+  if(t&&t!=='Click Generate ↓'){navigator.clipboard.writeText(t).catch(()=>{});alert('Copied to clipboard: '+t.substring(0,20)+'…');}
+}
+siteGenerate();
+</script>
+</body>
+</html>
