@@ -1,10 +1,3 @@
-<div align="center">
-
-<br/>
-
-<img src="extension/icons/icon128.png" width="100" height="100" alt="KeyNova Lock Icon"/>
-
-<br/>
 
 # KeyNova
 ### Professional Password Manager — Chrome Extension
@@ -190,72 +183,6 @@ All generation uses `crypto.getRandomValues()` — never `Math.random()`
 - Activity detected on every user interaction
 
 </details>
-
----
-
-## 📸 Screenshots
-
-> All screenshots show the live KeyNova extension running in Google Chrome.
-
-### Lock Screen & Firebase Sign-In
-The lock screen is the entry point every time you open KeyNova. Enter your master password to unlock the vault. The Firebase button opens optional cloud sign-in.
-
-| Lock Screen | Firebase Sign-In |
-|---|---|
-| ![Lock Screen](screenshots/lock-screen.png) | ![Firebase Sign-In](screenshots/signin-screen.png) |
-
----
-
-### Vault Screen
-The main dashboard showing saved credentials with the Online status badge, search bar, category filter, navigation tabs, and entry cards.
-
-| Vault — Online Badge | Vault — Category Filter |
-|---|---|
-| ![Vault Online](screenshots/vault-online.png) | ![Vault Filter](screenshots/vault-filter.png) |
-
----
-
-### Add & Edit Entry
-Full entry form with 5 entry types, strength meter, and all action buttons.
-
-| Entry Type Selector | Edit Entry — Strength Meter |
-|---|---|
-| ![Entry Types](screenshots/entry-types.png) | ![Edit Entry](screenshots/edit-entry-strength.png) |
-
----
-
-### Password Generator
-Three-tab generator with live output and customisation controls.
-
-| Password Tab | Passphrase Tab | Username Tab |
-|---|---|---|
-| ![Password Gen](screenshots/gen-password.png) | ![Passphrase Gen](screenshots/gen-passphrase.png) | ![Username Gen](screenshots/gen-username.png) |
-
----
-
-### Firebase Backend — Proof of Zero-Knowledge
-
-| Firebase Console | Authentication Users |
-|---|---|
-| ![Firebase Console](screenshots/firebase-console.png) | ![Firebase Auth](screenshots/firebase-auth.png) |
-
-| Firestore — Encrypted Data Only |
-|---|
-| ![Firestore Encrypted](screenshots/firestore-encrypted.png) |
-
-> 🔐 **Notice:** Firestore only stores `data` (ciphertext) and `iv` — no readable passwords, usernames, or any plaintext.
-
----
-
-### KeyNova Website on Firebase Hosting
-
-| Hero Section | Features Section |
-|---|---|
-| ![Website Hero](screenshots/website-hero.png) | ![Website Features](screenshots/website-features.png) |
-
-| Live Generator Demo | Security Section |
-|---|---|
-| ![Website Generator](screenshots/website-generator.png) | ![Website Security](screenshots/website-security.png) |
 
 ---
 
